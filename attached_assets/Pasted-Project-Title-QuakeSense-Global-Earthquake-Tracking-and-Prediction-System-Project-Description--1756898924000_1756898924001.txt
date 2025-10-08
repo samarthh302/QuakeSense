@@ -1,0 +1,75 @@
+Project Title:
+
+QuakeSense – Global Earthquake Tracking and Prediction System
+
+Project Description:
+
+QuakeSense is a Java-based application that visualizes real-time and historical earthquake data on an interactive world map. It integrates with a relational database (via JDBC) to store, retrieve, and manage earthquake records. The system also provides a basic earthquake prediction module using past seismic activity trends to highlight regions with higher probabilities of future earthquakes.
+
+Objectives:
+
+To collect, store, and manage earthquake data (magnitude, location, time, depth) in a database using JDBC.
+
+To display earthquake occurrences on a world map UI (using a Java graphics library or embedding a map API).
+
+To allow users to filter earthquakes based on magnitude, region, or time period.
+
+To provide a prediction model (rule-based or ML-based) that highlights possible high-risk zones.
+
+To create a user-friendly interface for visualization and analysis.
+
+Key Features:
+
+Database Integration (JDBC):
+
+Store earthquake records with fields: quakeId, latitude, longitude, magnitude, depth, region, dateTime.
+
+Support queries for filtering and sorting earthquake data.
+
+World Map Visualization:
+
+Plot earthquake points on a world map.
+
+Different colors/sizes for magnitudes (e.g., green for <4.0, yellow for 4.0–6.0, red for >6.0).
+
+Prediction Module:
+
+Identify high-frequency regions using historical data.
+
+Provide a risk map (e.g., heatmap overlay).
+
+Optional: Use a simple ML library (like Weka or DL4J) for magnitude forecasting.
+
+User Functionalities:
+
+Search earthquakes by date, region, or magnitude.
+
+View detailed earthquake info by clicking on a map marker.
+
+Export reports of recent earthquakes.
+
+Admin Functionalities:
+
+Insert, update, and delete earthquake records.
+
+Run SQL-based analytics through the system.
+
+Technology Stack:
+
+Frontend/UI: Java Swing/JavaFX for dashboard and map embedding.
+
+Backend: Java (JDBC for database connectivity).
+
+Database: MySQL / PostgreSQL.
+
+Visualization: JavaFX charts, JXMapViewer (Swing) or API integration for world maps.
+
+Prediction: Rule-based analysis + optional ML integration.
+
+Expected Outcome:
+
+A complete earthquake monitoring system that helps visualize global seismic activity.
+
+A simple predictive model that flags high-risk earthquake zones.
+
+A practical demonstration of Java + JDBC + visualization + data analysis.
