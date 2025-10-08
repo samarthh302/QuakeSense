@@ -85,10 +85,17 @@ class EarthquakeService:
                     
                 except Exception as e:
                     self.logger.error(f"Error processing earthquake feature: {e}")
+                    db.session.rollback()
                     continue
             
             # Commit all new records
-            db.session.commit()
+            if new_count > 0:
+                try:
+                    db.session.commit()
+                except Exception as e:
+                    self.logger.error(f"Error committing earthquakes: {e}")
+                    db.session.rollback()
+                    raise
             
             self.logger.info(f"Successfully stored {new_count} new earthquakes")
             return new_count
