@@ -1,0 +1,278 @@
+{% extends "base.html" %}
+
+{% block title %}QuakeSense - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Admin Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i data-feather="settings"></i>
+            Admin Panel
+        </h2>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary" id="fetch-data-btn">
+                <i data-feather="download"></i>
+                Fetch New Data
+            </button>
+            <button type="button" class="btn btn-secondary" id="update-predictions-btn">
+                <i data-feather="cpu"></i>
+                Update Predictions
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i data-feather="database" class="text-primary mb-2" width="48" height="48"></i>
+                    <h3 class="text-primary">{{ total_earthquakes|default(0) }}</h3>
+                    <p class="card-text">Total Earthquakes</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i data-feather="trending-up" class="text-success mb-2" width="48" height="48"></i>
+                    <h3 class="text-success">{{ recent_earthquakes|default(0) }}</h3>
+                    <p class="card-text">Recent (7 days)</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i data-feather="shield" class="text-info mb-2" width="48" height="48"></i>
+                    <h3 class="text-info" id="risk-zones-count">-</h3>
+                    <p class="card-text">Active Risk Zones</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Operations -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i data-feather="tool"></i>
+                System Operations
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="d-grid">
+                        <button class="btn btn-outline-primary" id="manual-fetch-btn">
+                            <i data-feather="refresh-cw"></i>
+                            Manual Data Fetch
+                        </button>
+                    </div>
+                    <small class="text-muted">Fetch latest earthquake data from USGS API</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="d-grid">
+                        <button class="btn btn-outline-secondary" id="recalculate-risk-btn">
+                            <i data-feather="cpu"></i>
+                            Recalculate Risk Zones
+                        </button>
+                    </div>
+                    <small class="text-muted">Update earthquake risk predictions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Earthquakes Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i data-feather="list"></i>
+                Recent Earthquakes
+            </h5>
+            <small class="text-muted">Showing latest 50 records</small>
+        </div>
+        <div class="card-body">
+            {% if earthquakes %}
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>USGS ID</th>
+                                <th>Magnitude</th>
+                                <th>Location</th>
+                                <th>Region</th>
+                                <th>Depth</th>
+                                <th>Timestamp</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for earthquake in earthquakes %}
+                            <tr>
+                                <td>
+                                    <code class="small">{{ earthquake.usgs_id[:8] }}...</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ earthquake.get_magnitude_color() }}">
+                                        M{{ "%.1f"|format(earthquake.magnitude) }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>
+                                        {{ "%.3f"|format(earthquake.latitude) }},
+                                        {{ "%.3f"|format(earthquake.longitude) }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 200px;" 
+                                          title="{{ earthquake.region }}">
+                                        {{ earthquake.region }}
+                                    </span>
+                                </td>
+                                <td>{{ "%.1f"|format(earthquake.depth) }} km</td>
+                                <td>
+                                    <small>{{ earthquake.timestamp.strftime('%Y-%m-%d %H:%M') }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                                onclick="viewEarthquakeDetails({{ earthquake.id }})">
+                                            <i data-feather="eye"></i>
+                                        </button>
+                                        <form method="post" 
+                                              action="{{ url_for('admin_delete_earthquake', earthquake_id=earthquake.id) }}"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Are you sure you want to delete this earthquake record?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i data-feather="trash-2"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center text-muted py-4">
+                    <i data-feather="database" width="48" height="48"></i>
+                    <p class="mt-2">No earthquake data available</p>
+                    <button class="btn btn-primary" id="initial-fetch-btn">
+                        <i data-feather="download"></i>
+                        Fetch Initial Data
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Operation Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Operation Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="status-message">
+                <!-- Status message will be shown here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earthquake Details Modal -->
+<div class="modal fade" id="earthquakeDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Earthquake Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="earthquake-detail-content">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+<script>
+    // Initialize admin functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeAdminPanel();
+        loadRiskZonesCount();
+        
+        // Re-initialize Feather icons after dynamic content loads
+        feather.replace();
+    });
+    
+    function loadRiskZonesCount() {
+        fetch('/api/risk-zones')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('risk-zones-count').textContent = data.risk_zones.length;
+                }
+            })
+            .catch(error => console.error('Error loading risk zones count:', error));
+    }
+    
+    function viewEarthquakeDetails(earthquakeId) {
+        fetch(`/api/earthquake/${earthquakeId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const eq = data.earthquake;
+                    const content = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Basic Information</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>USGS ID:</strong></td><td><code>${eq.usgs_id}</code></td></tr>
+                                    <tr><td><strong>Magnitude:</strong></td><td><span class="badge bg-${getMagnitudeColor(eq.magnitude)}">M${eq.magnitude}</span></td></tr>
+                                    <tr><td><strong>Depth:</strong></td><td>${eq.depth} km</td></tr>
+                                    <tr><td><strong>Region:</strong></td><td>${eq.region}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Location & Time</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>Latitude:</strong></td><td>${eq.latitude.toFixed(4)}°</td></tr>
+                                    <tr><td><strong>Longitude:</strong></td><td>${eq.longitude.toFixed(4)}°</td></tr>
+                                    <tr><td><strong>Timestamp:</strong></td><td>${new Date(eq.timestamp).toLocaleString()}</td></tr>
+                                    <tr><td><strong>Added:</strong></td><td>${new Date(eq.created_at).toLocaleString()}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('earthquake-detail-content').innerHTML = content;
+                    new bootstrap.Modal(document.getElementById('earthquakeDetailModal')).show();
+                }
+            })
+            .catch(error => console.error('Error loading earthquake details:', error));
+    }
+    
+    function getMagnitudeColor(magnitude) {
+        if (magnitude < 4.0) return 'success';
+        else if (magnitude < 6.0) return 'warning';
+        else return 'danger';
+    }
+</script>
+{% endblock %}

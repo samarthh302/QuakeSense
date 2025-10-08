@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block title %}QuakeSense - Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i data-feather="activity" class="text-primary" width="32" height="32"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Total Earthquakes</h6>
+                            <h4 class="text-primary mb-0" id="total-earthquakes">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i data-feather="trending-up" class="text-warning" width="32" height="32"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Recent (7 days)</h6>
+                            <h4 class="text-warning mb-0" id="recent-earthquakes">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i data-feather="alert-triangle" class="text-danger" width="32" height="32"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Major (M≥6.0)</h6>
+                            <h4 class="text-danger mb-0" id="major-earthquakes">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i data-feather="bar-chart" class="text-info" width="32" height="32"></i>
+                        </div>
+                        <div>
+                            <h6 class="card-title mb-0">Average Magnitude</h6>
+                            <h4 class="text-info mb-0" id="average-magnitude">-</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Map Column -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i data-feather="map"></i>
+                        Global Earthquake Map
+                    </h5>
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary" id="refresh-data">
+                            <i data-feather="refresh-cw"></i>
+                            Refresh
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary" id="toggle-risk-zones">
+                            <i data-feather="shield"></i>
+                            Risk Zones
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div id="earthquake-map" style="height: 600px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls and Info Column -->
+        <div class="col-lg-4">
+            <!-- Filters -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i data-feather="filter"></i>
+                        Filters
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form id="filter-form">
+                        <div class="mb-3">
+                            <label class="form-label">Time Period</label>
+                            <select class="form-select" id="time-filter">
+                                <option value="1">Last 24 hours</option>
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="365">Last year</option>
+                            </select>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Min Magnitude</label>
+                                <input type="number" class="form-control" id="min-magnitude" 
+                                       min="0" max="10" step="0.1" value="2.0">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Max Magnitude</label>
+                                <input type="number" class="form-control" id="max-magnitude" 
+                                       min="0" max="10" step="0.1" value="10">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Region</label>
+                            <input type="text" class="form-control" id="region-filter" 
+                                   placeholder="e.g., California, Japan">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i data-feather="search"></i>
+                            Apply Filters
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i data-feather="info"></i>
+                        Magnitude Legend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="legend-circle bg-success me-2"></div>
+                        <small>Minor (M &lt; 4.0)</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="legend-circle bg-warning me-2"></div>
+                        <small>Moderate (M 4.0-6.0)</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="legend-circle bg-danger me-2"></div>
+                        <small>Major (M &gt; 6.0)</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <div class="legend-circle bg-primary me-2" style="opacity: 0.6;"></div>
+                        <small>Risk Zones</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Earthquakes -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i data-feather="list"></i>
+                        Recent Major Earthquakes
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div id="recent-earthquakes-list">
+                        <div class="text-center text-muted">
+                            <i data-feather="loader" class="spin"></i>
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Earthquake Detail Modal -->
+<div class="modal fade" id="earthquakeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Earthquake Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="earthquake-details">
+                <!-- Details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/map.js') }}"></script>
+<script>
+    // Initialize the earthquake map
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeEarthquakeMap();
+        loadStatistics();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(function() {
+            earthquakeMap.refreshData();
+            loadStatistics();
+        }, 300000);
+    });
+    
+    function loadStatistics() {
+        fetch('/api/statistics')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const stats = data.statistics;
+                    document.getElementById('total-earthquakes').textContent = stats.total_earthquakes.toLocaleString();
+                    document.getElementById('recent-earthquakes').textContent = stats.recent_earthquakes.toLocaleString();
+                    document.getElementById('major-earthquakes').textContent = stats.major_earthquakes.toLocaleString();
+                    document.getElementById('average-magnitude').textContent = stats.average_magnitude;
+                }
+            })
+            .catch(error => console.error('Error loading statistics:', error));
+    }
+</script>
+{% endblock %}
